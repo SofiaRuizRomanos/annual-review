@@ -1,5 +1,5 @@
 # Requirements for HA SSJs on python
-numpy==1.26.4 #not >=2.2.1 for numba>=0.60.0 to hold
+numpy==1.26.4 #not >=2.2.1 for numba>=0.60.0 to hold, necessary for the ssj toolkit
 ipykernel>=6.29.5
 pandas>=2.2.3
 seaborn>=0.13.2
