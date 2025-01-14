@@ -421,3 +421,75 @@ def bottom_c_agg(c, D):
     C_B50 = fct_output[1]
 
     return C_B10, C_B50
+
+
+def top_consumption(c, D):
+    if D.shape != c.shape:
+        raise Exception("Both distributions do not have the same size.")
+
+    fct_output = []
+    for percentage in [0.05, 0.25]:
+
+        beta_sums = []
+        for beta_state in [1, 2]:
+            if beta_state == 1:  # s'assurer de bhi et blo
+                D_beta = D[:33, :]
+                c_beta = c[:33, :]
+            else:
+                D_beta = D[33:, :]
+                c_beta = c[33:, :]
+
+            last_row = D_beta.shape[0]
+            last_column = D_beta.shape[1]
+            pre_sum = 0
+            element_percentage = 0
+            rest = 0
+            last_element = np.array([last_row - 1, last_column - 1])
+            condition_met = False
+            var_aggregated = 0
+
+            for row in range(last_row, -1, -1):  # Iterate over rows from bottom to top
+                for col in range(
+                    last_column, -1, -1
+                ):  # Iterate over columns from right to left
+                    element_percentage = pre_sum + D_beta[row - 1, col - 1]
+
+                    if element_percentage == percentage:
+                        # if at this cell we meet the exact mass percentage we are looking for
+                        var_aggregated += (
+                            D_beta[row - 1, col - 1] * c_beta[row - 1, col - 1]
+                        )
+                        last_element = np.array([row - 1, col - 1])
+                        pre_sum = element_percentage
+                        condition_met = True
+                        beta_sums.append(var_aggregated)
+                        break
+
+                    elif element_percentage > percentage:
+                        # if at this cell we meet more than the exact mass percentage we are looking for
+                        rest = percentage - pre_sum
+                        var_aggregated += rest * c_beta[row - 1, col - 1]
+                        last_element = np.array([row - 1, col - 1])
+                        condition_met = True
+                        beta_sums.append(var_aggregated)
+                        break
+
+                    elif element_percentage < percentage:
+                        # if at this cell we meet less than the mass percentage we are looking for
+                        # sum and continue
+                        pre_sum = element_percentage
+                        var_aggregated += (
+                            D_beta[row - 1, col - 1] * c_beta[row - 1, col - 1]
+                        )
+                        last_element = np.array([row - 1, col - 1])
+
+                if condition_met:
+                    break
+        beta_sum_total = sum(beta_sums)
+        fct_output.append(beta_sum_total)
+
+    print(fct_output)
+    c_t10 = fct_output[0]
+    c_t50 = fct_output[1]
+
+    return c_t10
